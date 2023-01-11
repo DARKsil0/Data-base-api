@@ -1,18 +1,14 @@
 from peewee import *
 import report_func.report_func as report_func
-
+from flask import Flask, render_template, request, Response
+from flask_restful import Resource, Api
+from flasgger import Swagger, swag_from
+import xml.dom.minidom
+from dicttoxml import dicttoxml
+from models import Driver
 
 db = SqliteDatabase('drivers.db')
 
-
-class Driver(Model):
-    name = CharField()
-    best_lap_time = CharField()
-    team = CharField()
-    abbr = CharField()
-
-    class Meta:
-        database = db
 
 
 def build_report():
@@ -41,8 +37,41 @@ def add_drivers_to_db():
         abbr = Driver.create(name=value.name, team=value.team, best_lap_time=best_lap_time_count(value), abbr=abbr)
 
 
+def dict_from_db():
+    driver_dict = {}
+    for driver in Driver.select():
+
+        key = driver.abbr
+        value = {'name': driver.name, 'abbr': driver.abbr, 'team':driver.team, 'best lap time': driver.best_lap_time}
+        driver_dict[key] = value
+    return driver_dict
+
+
 db.close()
+
+
+app = Flask(__name__)
+api = Api(app)
+swagger = Swagger(app)
+
+
+class DriversReport(Resource):
+
+    def get(self, version):
+        format = request.args.get('format')
+        racer_dict = dict_from_db()
+
+        if format == 'json':
+            return racer_dict
+
+        elif format == 'xml':
+            report_xml = dicttoxml(racer_dict)
+            return Response(report_xml, mimetype='application/xml')
+
+
+api.add_resource(DriversReport, '/api/<version>/report/')
 
 
 if __name__ == '__main__':
     add_drivers_to_db()
+    app.run(debug=True)
