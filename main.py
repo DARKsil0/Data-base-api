@@ -73,5 +73,5 @@ api.add_resource(DriversReport, '/api/<version>/report/')
 
 
 if __name__ == '__main__':
-    add_drivers_to_db()
+    #add_drivers_to_db()
     app.run(debug=True)
