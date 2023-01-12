@@ -10,7 +10,6 @@ from models import Driver
 db = SqliteDatabase('drivers.db')
 
 
-
 def build_report():
     dict_abbr_class = report_func.make_classes('logs')
     dict_abbr_class = report_func.add_time_to_class('logs', 'start', dict_abbr_class)
